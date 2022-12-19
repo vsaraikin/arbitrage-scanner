@@ -1,18 +1,16 @@
 import asyncio
 import ccxt.pro
 from termcolor import cprint
-from configs import exchanges_list, symbols
+# from configs import exchanges_list, symbols
 import random
-from tools import write_data, timeit, get_proxy
+from ticker_engineering.tools import write_data, timeit, get_proxy
 
 orderbooks = {}
 
-exchanges = {ex:symbols for ex in exchanges_list}
 
-print("Total future connections:", len(exchanges_list))
 
-@timeit
-def handle_all_orderbooks(orderbooks):
+# @timeit
+def handle_all_orderbooks(orderbooks, symbols, exchanges):
     
     print('We have the following orderbooks:')
     market_data_tmp_bid = {ticker:{exchange:float('-inf') for exchange in exchanges.keys()} for ticker in symbols} # Store best bids from all exchanges 
@@ -38,7 +36,7 @@ def handle_all_orderbooks(orderbooks):
         cprint(f"DIFF on {symbol}: BID {market_data_tmp_ask[symbol][min_key] - market_data_tmp_bid[symbol][max_key]}", "green")
 
 
-async def symbol_loop(exchange, symbol, id_func):
+async def symbol_loop(exchange, symbol, symbols, exchanges, id_func):
     while True:
         try:
             orderbook = await exchange.watch_order_book(symbol)
@@ -46,7 +44,7 @@ async def symbol_loop(exchange, symbol, id_func):
             orderbooks[exchange.id][symbol] = orderbook
             print('===========================================================', id_func)
             
-            handle_all_orderbooks(orderbooks)
+            handle_all_orderbooks(orderbooks, symbols, exchanges)
             # await exchange.close()
         except Exception as e:
             # await exchange.close()
@@ -58,22 +56,22 @@ async def symbol_loop(exchange, symbol, id_func):
 # proxy_https = get_proxy(ssl=True)
 # print('Got proxy:', proxy_http, proxy_https)
         
-async def exchange_loop(exchange_id, symbols):
+async def exchange_loop(exchange_id, symbols, exchanges):
     
     exchange = getattr(ccxt.pro, exchange_id)(
         # {'http': proxy_http, 'https': proxy_https, 'aiohttp_proxy': proxy_http}
     )
     # exchange.headers = {'Connection': 'close'}
 
-    loops = [symbol_loop(exchange, symbol, random.randint(0, 100)) for symbol in symbols]
+    loops = [symbol_loop(exchange, symbol, symbols, exchanges, random.randint(0, 100)) for symbol in symbols]
     await asyncio.gather(*loops)
     await exchange.close()
 
 
-async def main():
-    loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
+async def exec_scanner(symbols, exchanges_list):
+    exchanges = {ex:symbols for ex in exchanges_list}
+    print("Total future connections:", len(exchanges_list))
+    
+    loops = [exchange_loop(exchange_id, symbols, exchanges) for exchange_id, symbols in exchanges.items()]
     await asyncio.gather(*loops)
 
-
-asyncio.run(main())
-# write_data(difference_dict, 'data.json')

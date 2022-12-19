@@ -10,6 +10,13 @@ def write_data(data, filename):
     with open(filename, "w") as file:
         json.dump(data, file)
         
+        
+def read_data(filename):
+    with open(filename, 'r') as file:
+        file = json.load(file)
+        
+    return file
+        
 
 def timeit(func):
     @wraps(func)
