@@ -3,11 +3,9 @@ from functools import wraps
 import time
 import requests as r
 import pandas as pd
-from random import choice
 from termcolor import cprint
 import asyncio
 import aiohttp
-from multiprocessing import Pool
 from aiohttp_socks import ProxyConnector
 
     
