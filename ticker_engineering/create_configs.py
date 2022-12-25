@@ -1,6 +1,10 @@
 from ticker_engineering.tools import read_data
 
 data = read_data('ticker_engineering/tickers_exchanges.json')
+data.pop('gateio')
+data.pop('wazirx')
+data.pop('currencycom')
+data.pop('gate')
 
 
 def ticker_ex_configs(tickers_set: set) -> dict:
