@@ -1,13 +1,50 @@
 from ticker_engineering.tools import read_data
 
 data = read_data('ticker_engineering/tickers_exchanges.json')
-data.pop('gateio')
-data.pop('wazirx')
-data.pop('currencycom')
-data.pop('gate')
 
+exchanges_selected = {
+    'bequant', # dead
+    # 'binance',
+    # 'binancecoinm',
+    # 'binanceus',
+    # 'binanceusdm',
+    # 'bitfinex2',
+    # 'bitmex',
+    'bitcoincom', # dead
+    # 'bitstamp',
+    # 'bittrex',
+    # 'bybit',
+    'coinbaseprime',
+    'coinbasepro', # drops...
+    # 'coinex',
+    'cryptocom', # drops...
+    # 'currencycom',
+    # 'deribit',
+    'gate', # drops
+    'hitbtc', # drops
+    # 'hollaex',
+    'huobi', # drops...
+    # 'huobijp',
+    # 'huobipro',
+    # 'kraken',
+    'kucoin', # dead
+    # 'okcoin',
+    # 'okex',
+    # 'okx',
+    # 'phemex',
+    'upbit', # drops
+    # 'whitebit',
+}
+
+
+data = {k:data[k] for k in data if k in exchanges_selected}
+# for ex in data:
+#     if ex not in exchanges_selected:
+#         data.pop(ex)
+        
 
 def ticker_ex_configs(tickers_set: set) -> dict:
+    all_connections = 0
     avaliable_tickers = set()
     matched_tickers_exs = {ticker:[] for ticker in tickers_set}
     matched_exs_tickers = {}
@@ -32,7 +69,9 @@ def ticker_ex_configs(tickers_set: set) -> dict:
         for ex in matched_tickers_exs[ticker]:
             if not matched_exs_tickers.get(ex):
                 matched_exs_tickers[ex] = [ticker]
+                all_connections += 1
             else:
                 matched_exs_tickers[ex].append(ticker)
+                all_connections += 1
                 
-    return matched_exs_tickers, matched_tickers_exs
+    return matched_exs_tickers, matched_tickers_exs, all_connections
