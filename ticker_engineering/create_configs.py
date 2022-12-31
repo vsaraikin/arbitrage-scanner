@@ -20,18 +20,18 @@ exchanges_selected = {
     'cryptocom', # drops...
     # 'currencycom',
     # 'deribit',
-    'gate', # drops
+    # 'gate', # too slow response
     'hitbtc', # drops
     # 'hollaex',
     'huobi', # drops...
     # 'huobijp',
     # 'huobipro',
     # 'kraken',
-    'kucoin', # dead
+    # 'kucoin', # dead, slow responses
     # 'okcoin',
-    # 'okex',
-    # 'okx',
-    # 'phemex',
+    'okex',
+    'okx',
+    'phemex',
     'upbit', # drops
     # 'whitebit',
 }
