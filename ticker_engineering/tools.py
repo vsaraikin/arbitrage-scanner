@@ -11,14 +11,17 @@ from aiohttp_socks import ProxyConnector
     
 def write_data(data, filename):
     with open(filename, "w") as file:
-        json.dump(data, file)
+        json.dump(data, file, sort_keys=True, indent=4, separators=(',', ': '))
         
         
 def read_data(filename):
-    with open(filename, 'r') as file:
-        file = json.load(file)
-        
-    return file
+    try:
+        with open(filename, 'r') as file:
+            file = json.load(file)
+        return file
+    except FileNotFoundError:
+        return None
+    
         
 
 def timeit(func):
