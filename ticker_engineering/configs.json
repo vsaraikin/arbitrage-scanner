@@ -1,0 +1,27 @@
+{
+    "exchanges_selected": [
+        "bequant",
+        "binance",
+        "binanceus",
+        "bitfinex2",
+        "bitmex",
+        "bybit",
+        "coinbaseprime",
+        "coinbasepro",
+        "coinex",
+        "cryptocom",
+        "currencycom",
+        "deribit",
+        "gate",
+        "hitbtc",
+        "huobi",
+        "huobijp",
+        "huobipro",
+        "kraken",
+        "kucoin",
+        "okcoin",
+        "okx",
+        "upbit",
+        "whitebit"
+    ]
+}
