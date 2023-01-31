@@ -1,46 +1,10 @@
-from ticker_engineering.tools import read_data
+from tools import read_data
 
-data = read_data('ticker_engineering/tickers_exchanges.json')
+data = read_data('ticker_engineering/all_tickers_exchanges.json')
 
-exchanges_selected = {
-    'bequant', # dead
-    # 'binance',
-    # 'binancecoinm',
-    # 'binanceus',
-    # 'binanceusdm',
-    # 'bitfinex2',
-    # 'bitmex',
-    'bitcoincom', # dead
-    # 'bitstamp',
-    # 'bittrex',
-    # 'bybit',
-    'coinbaseprime',
-    'coinbasepro', # drops...
-    # 'coinex',
-    'cryptocom', # drops...
-    # 'currencycom',
-    # 'deribit',
-    # 'gate', # too slow response
-    'hitbtc', # drops
-    # 'hollaex',
-    'huobi', # drops...
-    # 'huobijp',
-    # 'huobipro',
-    # 'kraken',
-    # 'kucoin', # dead, slow responses
-    # 'okcoin',
-    'okex',
-    'okx',
-    'phemex',
-    'upbit', # drops
-    # 'whitebit',
-}
-
+exchanges_selected = read_data('ticker_engineering/configs.json')['exchanges_selected']
 
 data = {k:data[k] for k in data if k in exchanges_selected}
-# for ex in data:
-#     if ex not in exchanges_selected:
-#         data.pop(ex)
         
 
 def ticker_ex_configs(tickers_set: set) -> dict:
@@ -63,6 +27,11 @@ def ticker_ex_configs(tickers_set: set) -> dict:
         for ticker in tickers_set:
             if ticker in data[ex]:
                 matched_tickers_exs[ticker].append(ex)
+    
+    for ticker in list(matched_tickers_exs):
+        if len(matched_tickers_exs[ticker]) < 2: # impossible to arbitrage it
+            matched_tickers_exs.pop(ticker)
+            tickers_set.remove(ticker)
 
     # Switch ex to ticker
     for ticker in tickers_set:
