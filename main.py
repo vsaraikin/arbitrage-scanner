@@ -4,7 +4,6 @@ from ticker_engineering.tools import timeit, generate_proxies, read_data
 from ticker_engineering.create_configs import ticker_ex_configs
 import logging
 import time
-import tqdm.asyncio
 
 logging.basicConfig(filename=f'messages_{time.time()}.log',
                     filemode='a',

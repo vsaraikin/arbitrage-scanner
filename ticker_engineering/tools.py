@@ -1,6 +1,8 @@
 import json
-from functools import wraps
+from typing import Callable
 import time
+from functools import wraps
+
 import requests as r
 import pandas as pd
 from termcolor import cprint
@@ -9,12 +11,12 @@ import aiohttp
 from aiohttp_socks import ProxyConnector
 
     
-def write_data(data, filename):
+def write_data(data: dict, filename: str) -> None:
     with open(filename, "w") as file:
         json.dump(data, file, sort_keys=True, indent=4, separators=(',', ': '))
         
         
-def read_data(filename):
+def read_data(filename: str) -> dict:
     try:
         with open(filename, 'r') as file:
             file = json.load(file)
@@ -24,7 +26,7 @@ def read_data(filename):
     
         
 
-def timeit(func):
+def timeit(func: Callable):
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):
         start_time = time.perf_counter()
@@ -37,7 +39,7 @@ def timeit(func):
     return timeit_wrapper
 
 
-def get_proxy(ssl, url):
+def get_proxy(ssl: bool, url: str) -> list:
     res = r.get(url, headers={'User-Agent':'Mozilla/5.0'}).text
     table = pd.read_html(res)[0]
     table['IP'] = table['IP Address'].apply(str) + ':' +  table['Port'].apply(str)

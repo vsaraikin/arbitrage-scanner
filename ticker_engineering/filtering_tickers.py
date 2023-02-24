@@ -1,21 +1,25 @@
 import asyncio
-import ccxt.pro
-from tools import timeit, read_data, write_data
-from create_configs import ticker_ex_configs
 import logging
-import tqdm.asyncio
 import random
 import time
+from typing import Union
+
+from tools import timeit, read_data, write_data
+from ticker_configurator import CreateConfigs
+
+from tqdm import tqdm
+import ccxt.pro
 
 
 FILTERED_CONFIGS = 'ticker_engineering/filtered_tickers_exchanges.json'
 
 class NoResponseFromExchange(Exception):
+    """Raise exception if exchange did not respond"""
     def __init__(self, message="No response from exchange: ") -> None:
         super().__init__(message)
 
 
-async def spot_check(exchange: ccxt.pro.Exchange, symbol: str, markets: dict) -> str:
+async def spot_check(exchange: ccxt.pro.Exchange, symbol: str, markets: dict) -> Union[str, None]:
     """ Check whether a market is liquid """
     res = markets.get(symbol)
 
@@ -46,7 +50,7 @@ async def prepare_symbols(exchange: ccxt.pro.Exchange, symbols: list) -> list:
 async def exchange_loop(exchange_id: ccxt.pro.Exchange, symbols: list):
     exchange = getattr(ccxt.pro, exchange_id)()
     try:
-        with timeout(5, exception=NoResponseFromExchange):
+        with timeout(5, exception=NoResponseFromExchange): # need to implement that
             new_symbols = await prepare_symbols(exchange, symbols)
             await exchange.close()
             return {exchange_id: new_symbols}
@@ -55,8 +59,7 @@ async def exchange_loop(exchange_id: ccxt.pro.Exchange, symbols: list):
         return
 
 async def run_filtering(exchanges: dict):
-    # print("Total future exchanges:", len(exchanges.keys()))
-    # print("Total future subscribtions:", all_connections)
+    print("Total future exchanges:", len(exchanges.keys()))
     loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
     new_pairs = await tqdm.asyncio.tqdm.gather(*loops)
     
@@ -71,6 +74,7 @@ async def write_filtered_symbols(ex_tickers):
     
     merged_pairs = await run_filtering(ex_tickers)
     filtered_configs = read_data(FILTERED_CONFIGS)
+    
     if not filtered_configs:
         write_data(merged_pairs, FILTERED_CONFIGS)
     else:
@@ -82,17 +86,14 @@ async def write_filtered_symbols(ex_tickers):
         write_data(filtered_configs, FILTERED_CONFIGS)
 
 
-top_tickers = read_data('ticker_engineering/all_tickers_exchanges.json')['binance']
+top_tickers = {
+    'SOL/USDT', 'CRO/USDT'
+}
 
 
-from interruptingcow import timeout
+# from interruptingcow import timeout
 
-
-# for _ in tqdm.tqdm(top_tickers):
-# ticker = random.choice(top_tickers)
-# ex_tickers, _, _ = ticker_ex_configs({ticker})
-# asyncio.run(write_filtered_symbols(ex_tickers))
-
-# except NoResponseFromExchange:
-#     print ("didn't finish within 5 seconds")
-        # top_tickers.remove(ticker)
+for ticker in tqdm(top_tickers):
+    ex_tickers, tickers_ex, _ = CreateConfigs({ticker}).manage_configs()
+    
+asyncio.run(write_filtered_symbols(ex_tickers))
