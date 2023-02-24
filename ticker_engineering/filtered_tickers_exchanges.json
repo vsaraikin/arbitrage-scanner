@@ -38,7 +38,15 @@
         "STMX/USDT",
         "ADA/USDT",
         "APE/ETH",
-        "CFX/USDT"
+        "CFX/USDT",
+        "PLA/USDT",
+        "DAR/USDT",
+        "SFP/BTC",
+        "ICP/EUR",
+        "VIDT/USDT",
+        "XRP/GBP",
+        "LINK/AUD",
+        "SKL/BTC"
     ],
     "binanceus": [
         "MATIC/BUSD",
@@ -46,7 +54,8 @@
         "LINK/USDT",
         "RARE/USDT",
         "ALICE/USDT",
-        "ADA/USDT"
+        "ADA/USDT",
+        "DAR/USDT"
     ],
     "bitfinex2": [
         "WOO/USDT",
@@ -59,13 +68,17 @@
         "GALA/EUR",
         "LINK/USDT",
         "FIS/USDT",
-        "ADA/USDT"
+        "ADA/USDT",
+        "ICP/EUR",
+        "SKL/BTC"
     ],
     "coinbasepro": [
         "GALA/EUR",
         "LINK/USDT",
         "FIS/USDT",
-        "ADA/USDT"
+        "ADA/USDT",
+        "ICP/EUR",
+        "SKL/BTC"
     ],
     "coinex": [
         "WOO/USDT",
@@ -85,7 +98,9 @@
         "ALICE/USDT",
         "STMX/USDT",
         "ADA/USDT",
-        "CFX/USDT"
+        "CFX/USDT",
+        "PLA/USDT",
+        "DAR/USDT"
     ],
     "cryptocom": [
         "WOO/USDT",
@@ -93,7 +108,9 @@
         "LINK/USDT",
         "RARE/USDT",
         "ALICE/USDT",
-        "ADA/USDT"
+        "ADA/USDT",
+        "PLA/USDT",
+        "DAR/USDT"
     ],
     "currencycom": [],
     "gate": [
@@ -112,7 +129,9 @@
         "ALICE/USDT",
         "STMX/USDT",
         "ADA/USDT",
-        "CFX/USDT"
+        "CFX/USDT",
+        "PLA/USDT",
+        "DAR/USDT"
     ],
     "hitbtc": [
         "BCH/USDT",
@@ -127,7 +146,8 @@
         "POLS/BTC",
         "ALICE/USDT",
         "ADA/USDT",
-        "APE/ETH"
+        "APE/ETH",
+        "SFP/BTC"
     ],
     "huobi": [
         "WOO/USDT",
@@ -140,7 +160,8 @@
         "ATOM/ETH",
         "INJ/BTC",
         "ALICE/USDT",
-        "ADA/USDT"
+        "ADA/USDT",
+        "PLA/USDT"
     ],
     "huobipro": [
         "WOO/USDT",
@@ -153,7 +174,8 @@
         "ATOM/ETH",
         "INJ/BTC",
         "ALICE/USDT",
-        "ADA/USDT"
+        "ADA/USDT",
+        "PLA/USDT"
     ],
     "kraken": [
         "GALA/EUR",
@@ -162,7 +184,10 @@
         "XMR/BTC",
         "ATOM/ETH",
         "ENJ/GBP",
-        "ADA/USDT"
+        "ADA/USDT",
+        "ICP/EUR",
+        "XRP/GBP",
+        "LINK/AUD"
     ],
     "kucoin": [
         "WOO/USDT",
@@ -178,7 +203,11 @@
         "POLS/BTC",
         "ALICE/USDT",
         "ADA/USDT",
-        "CFX/USDT"
+        "CFX/USDT",
+        "DAR/USDT",
+        "SFP/BTC",
+        "VIDT/USDT",
+        "SKL/BTC"
     ],
     "okx": [
         "WOO/USDT",

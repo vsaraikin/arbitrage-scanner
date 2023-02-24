@@ -1,8 +1,8 @@
-from configs import exchanges_list
-import ccxt 
-from ticker_engineering.tools import write_data
+import ccxt.pro
+from tools import write_data, read_data
 from concurrent.futures import ThreadPoolExecutor
 
+exchanges_selected = read_data('ticker_engineering/configs.json')['exchanges_selected']
 
 tickers_exchanges = {}
 
@@ -47,14 +47,8 @@ def fetch_tickers(id):
         print(type(e).__name__, e.args, str(e))
         
 
-
-
-
 if __name__ == '__main__':
-    
-    with ThreadPoolExecutor(len(exchanges_list)) as executor:
-        executor.map(fetch_tickers, exchanges_list)
+    with ThreadPoolExecutor(len(exchanges_selected)) as executor:
+        executor.map(fetch_tickers, exchanges_selected)
         
-
-# write_data(tickers_exchanges, 'tickers_exchanges.json')
-
+write_data(tickers_exchanges, 'all_tickers_exchanges.json')
