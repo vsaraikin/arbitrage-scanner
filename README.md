@@ -11,6 +11,9 @@ Run scanner:
 `python main.py`
 
 
+## Architecture
+
+
 ## How does scanner works?
 
 will be added later

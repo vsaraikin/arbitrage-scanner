@@ -1,8 +1,8 @@
 # To-do
 
-– Bitfinex remove, because of:
-/Users/vladimirs/miniconda3/envs/cecl3.9/lib/python3.9/site-packages/ccxt/pro/bitfinex2.py:65: RuntimeWarning: coroutine 'ClientWebSocketResponse.send_str' was never awaited
-  client.send({
-RuntimeWarning: Enable tracemalloc to get the object allocation traceback
-– Successfully finish the script
 – Timeout decorator fix
+– https://github.com/ccxt/ccxt/issues/9754
+– Class-based main.py and inheritance from `ticker_configurator.py`
+– https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py
+– https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
+– https://docs.aiohttp.org/en/stable/client_advanced.html?highlight=proxy#proxy-support

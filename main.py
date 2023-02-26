@@ -43,6 +43,7 @@ def handle_all_orderbooks(orderbooks):
             logger.info(f"{symbol}: BID {market_data_tmp_bid[symbol][max_key]} on {max_key} | ASK {market_data_tmp_ask[symbol][min_key]} on {min_key} // DIFF on {symbol}: {round(difference, 5)} or {round(differrence_pct * 100, 3)}%")
 
 
+@timeout(5)
 async def symbol_loop(exchange: ccxt.pro.Exchange, symbol: str):
     """ Checking whether a desired `exchange[ticker]` is liquid and listening to ordebook """
     while True:
@@ -57,6 +58,10 @@ async def symbol_loop(exchange: ccxt.pro.Exchange, symbol: str):
                 logger.info(f"Pairs [symbols - exhcnages] loaded {round( 100 * (len(count_connection)/all_connections), 2)}%")
                 await asyncio.sleep(0.1)
             
+            else:
+                logger.info(f'Successfully left loop with {symbol} - {exchange}')
+                break
+            
         except ccxt.RequestTimeout as e:
             logger.critical(f"{type(e).__name__} {str(e)} on {exchange}") # recoverable error, do nothing and retry later
         except ccxt.DDoSProtection as e:
@@ -70,19 +75,11 @@ async def symbol_loop(exchange: ccxt.pro.Exchange, symbol: str):
             logger.critical(f"{type(e).__name__} {str(e)} on {exchange}") # panic and halt the execution in case of any other error
             break
    
-@timeout(5)
+   
 async def exchange_init(exchange_id: ccxt.pro.Exchange, symbols: list):
     
-    exchange = getattr(ccxt.pro, exchange_id)(
-        {
-        # 'http': 'http://' + proxy_http,
-        # 'https': 'https://' + proxy_https,
-        # 'aiohttp_proxy': 'http://' + proxy_http,
-        'enableRateLimit': True,
-        # 'verify': False,
-        }
-    )
-    # exchange.session.verify= False        # Do not reject on SSL certificate checks
+    exchange = getattr(ccxt.pro, exchange_id)()
+
     logger.info(f'Initialized exchange object – {exchange_id}')
     
     if symbols:
