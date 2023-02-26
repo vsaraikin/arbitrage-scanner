@@ -1,23 +1,23 @@
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple
 
 import ccxt.pro
 
-from tools import write_data, read_data
+from ticker_engineering.tools import write_data, read_data
 
 
 tickers_exchanges = {}
 
 PATH_EXCHANGES_CONFIGS = 'ticker_engineering/configs.json'
-PATH_TICKERS_EXCHANGES_STORAGE = 'all_tickers_exchanges.json'
+PATH_TICKERS_EXCHANGES_STORAGE = 'ticker_engineering/all_tickers_exchanges.json'
 
 
 @dataclass
 class CreateStorage:
     """Class for creating storage for all selected exchanges and symbols related to them"""
-    exchanges_selected: list[str] = read_data(PATH_EXCHANGES_CONFIGS)['exchanges_selected']
-
+    exchanges_selected: list[str] = field(default_factory = lambda: read_data(PATH_EXCHANGES_CONFIGS)['exchanges_selected'])
+    
     
     @staticmethod
     def fetch_tickers(id):
@@ -61,7 +61,9 @@ class CreateStorage:
             print(type(e).__name__, e.args, str(e))
             
             
-    def _exec_fetching(self, n_threads: int = len(exchanges_selected)):
+    def _exec_fetching(self):
+        n_threads = len(self.exchanges_selected)
+        
         with ThreadPoolExecutor(n_threads) as executor:
             executor.map(self.fetch_tickers, self.exchanges_selected)
             
@@ -77,10 +79,12 @@ class CreateStorage:
 
 
 class CreateConfigs(CreateStorage):
-    """Create configuration for the scanner 'on-the-fly' """
-    def __init__(self):    
+    """Create configuration for the scanner 'on-the-fly'"""
+    def __init__(self, ticker_set: set[str]):    
+        CreateStorage.__init__(self)
         self.storage = read_data(PATH_TICKERS_EXCHANGES_STORAGE)
         self.data = {k:self.storage[k] for k in self.storage if k in self.exchanges_selected}
+        self.ticker_set = ticker_set
             
             
     @staticmethod
@@ -123,8 +127,8 @@ class CreateConfigs(CreateStorage):
         return matched_exs_tickers, matched_tickers_exs, all_connections
     
     
-    def manage_configs(self, tickers_selected):
-        return self._ticker_ex_configs(self.data, tickers_selected)
+    def manage_configs(self):
+        return self._ticker_ex_configs(self.data, self.ticker_set)
 
 
 if __name__ == '__main__':

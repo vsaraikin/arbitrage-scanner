@@ -1,7 +1,8 @@
 import json
 from typing import Callable
 import time
-from functools import wraps
+import functools
+from threading import Thread
 
 import requests as r
 import pandas as pd
@@ -12,11 +13,13 @@ from aiohttp_socks import ProxyConnector
 
     
 def write_data(data: dict, filename: str) -> None:
+    """Write data to json"""
     with open(filename, "w") as file:
         json.dump(data, file, sort_keys=True, indent=4, separators=(',', ': '))
         
         
 def read_data(filename: str) -> dict:
+    """Read data from json"""
     try:
         with open(filename, 'r') as file:
             file = json.load(file)
@@ -27,7 +30,8 @@ def read_data(filename: str) -> dict:
         
 
 def timeit(func: Callable):
-    @wraps(func)
+    """Decorator to track time of completion"""
+    @functools.wraps(func)
     def timeit_wrapper(*args, **kwargs):
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
@@ -38,23 +42,23 @@ def timeit(func: Callable):
         return result
     return timeit_wrapper
 
-
-def get_proxy(ssl: bool, url: str) -> list:
-    res = r.get(url, headers={'User-Agent':'Mozilla/5.0'}).text
-    table = pd.read_html(res)[0]
-    table['IP'] = table['IP Address'].apply(str) + ':' +  table['Port'].apply(str)
-    cprint('Requested more proxies', 'yellow')
-    if ssl:
-        return table[table['Https'] == 'yes']['IP'].to_list()
-    else:
-        return table[table['Https'] == 'no']['IP'].to_list()
-
     
 
 @timeit
 def generate_proxies():
+    """Scrape proxies"""
     
     timeout = 2
+    
+    def get_proxy(ssl: bool, url: str) -> list:
+        res = r.get(url, headers={'User-Agent':'Mozilla/5.0'}).text
+        table = pd.read_html(res)[0]
+        table['IP'] = table['IP Address'].apply(str) + ':' +  table['Port'].apply(str)
+        cprint('Requested more proxies', 'yellow')
+        if ssl:
+            return table[table['Https'] == 'yes']['IP'].to_list()
+        else:
+            return table[table['Https'] == 'no']['IP'].to_list()
     
     async def check(socket_address: str, proto: str) -> None:
         proxy_url = f"{proto}://{socket_address}"
@@ -99,7 +103,7 @@ def generate_proxies():
                             return result
                         
             else:
-                raise ValueError("Unknown proto type")
+                raise ValueError("Unknown prototype")
 
     http_proxy = asyncio.run(generate_with_proto('http'))
     https_proxy = asyncio.run(generate_with_proto('https'))
@@ -107,5 +111,47 @@ def generate_proxies():
     if http_proxy and https_proxy:
         return (http_proxy, https_proxy)
     else:
-        exit()
+        raise Exception("Unsucessfully parsed proxies")
     
+    
+    
+############### Manage long timeouts from exchanges ###############
+    
+class NoResponseFromExchange(Exception):
+    def __init__(self, message="No response from exchange: ") -> None:
+        """Raise exception if exchange did not respond"""
+        super().__init__(message)
+
+
+
+def timeout(timeout: int):
+    def deco(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            
+            res = [NoResponseFromExchange('function [%s] timeout [%s seconds] exceeded!' % (func.__name__, timeout))]
+            
+            def newFunc():
+                try:
+                    res[0] = func(*args, **kwargs)
+                except Exception as e:
+                    res[0] = e
+                    
+            t = Thread(target=newFunc)
+            t.daemon = True
+            
+            try:
+                t.start()
+                t.join(timeout)
+            except Exception as je:
+                print ('error starting thread')
+                raise je
+            
+            ret = res[0]
+            
+            if isinstance(ret, BaseException):
+                raise ret
+            
+            return ret
+        return wrapper
+    return deco

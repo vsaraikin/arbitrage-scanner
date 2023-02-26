@@ -3,20 +3,21 @@ import logging
 import random
 import time
 from typing import Union
+import logging
+import logging.config
 
-from tools import timeit, read_data, write_data
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('default')
+
+
+from tools import timeit, read_data, write_data, NoResponseFromExchange, timeout
 from ticker_configurator import CreateConfigs
 
-from tqdm import tqdm
+import tqdm, tqdm.asyncio
 import ccxt.pro
 
 
-FILTERED_CONFIGS = 'ticker_engineering/filtered_tickers_exchanges.json'
-
-class NoResponseFromExchange(Exception):
-    """Raise exception if exchange did not respond"""
-    def __init__(self, message="No response from exchange: ") -> None:
-        super().__init__(message)
+FILTERED_CONFIGS_PATH = 'ticker_engineering/filtered_tickers_exchanges.json'
 
 
 async def spot_check(exchange: ccxt.pro.Exchange, symbol: str, markets: dict) -> Union[str, None]:
@@ -47,53 +48,70 @@ async def prepare_symbols(exchange: ccxt.pro.Exchange, symbols: list) -> list:
     return new_symbols
 
 
-async def exchange_loop(exchange_id: ccxt.pro.Exchange, symbols: list):
+@timeout(1)
+async def exchange_loop(exchange_id: ccxt.pro.Exchange, symbols: list) -> Union[dict, None]:
     exchange = getattr(ccxt.pro, exchange_id)()
     try:
-        with timeout(5, exception=NoResponseFromExchange): # need to implement that
-            new_symbols = await prepare_symbols(exchange, symbols)
-            await exchange.close()
-            return {exchange_id: new_symbols}
-    except NoResponseFromExchange:
+        new_symbols = await prepare_symbols(exchange, symbols)
         await exchange.close()
+        return {exchange_id: new_symbols}
+    except (NoResponseFromExchange, ccxt.base.errors.RequestTimeout, asyncio.exceptions.TimeoutError, asyncio.exceptions.CancelledError):
+        await exchange.close()
+        logger.critical(f'Conncetion with {exchange_id} dropped')
         return
 
-async def run_filtering(exchanges: dict):
+
+async def run_filtering(exchanges: dict) -> dict:
     print("Total future exchanges:", len(exchanges.keys()))
     loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
     new_pairs = await tqdm.asyncio.tqdm.gather(*loops)
+    new_pairs = [x for x in new_pairs if x != None]
     
-    # while new_pairs
-    
-    merged_pairs = {key:val for d in new_pairs for key,val in d.items()}
-    return merged_pairs
+    if new_pairs:
+        merged_pairs = {key:val for d in new_pairs for key,val in d.items()}
+        return merged_pairs
+    else:
+        return
 
 
-async def write_filtered_symbols(ex_tickers):
+async def write_filtered_symbols(ex_tickers: dict) -> None:
     """ Save symbols which are filtered """
     
     merged_pairs = await run_filtering(ex_tickers)
-    filtered_configs = read_data(FILTERED_CONFIGS)
     
-    if not filtered_configs:
-        write_data(merged_pairs, FILTERED_CONFIGS)
+    if merged_pairs:
+    
+        filtered_configs = read_data(FILTERED_CONFIGS_PATH)
+        
+        if not filtered_configs:
+            write_data(merged_pairs, FILTERED_CONFIGS_PATH)
+        else:
+            for ex in merged_pairs.keys():
+                if not filtered_configs.get(ex):
+                    filtered_configs[ex] = merged_pairs[ex]
+                else:
+                    [filtered_configs[ex].append(symbol) for symbol in merged_pairs[ex]]
+            write_data(filtered_configs, FILTERED_CONFIGS_PATH)
+
     else:
-        for ex in merged_pairs.keys():
-            if not filtered_configs.get(ex):
-               filtered_configs[ex] = merged_pairs[ex]
-            else:
-                [filtered_configs[ex].append(symbol) for symbol in merged_pairs[ex]]
-        write_data(filtered_configs, FILTERED_CONFIGS)
+        logger.info(f'No pairs for {ex_tickers}')
 
 
 top_tickers = {
-    'SOL/USDT', 'CRO/USDT'
+    "STRM/USDT",
+    "SUN/USDT",
+    "SUPER/USDT",
+    "SUSHI/BTC",
+    "SUSHI/UAH",
+    "SUSHI/USDT",
+    "SXP/USDT",
+    "TABOO/USDT",
+    "TCG2/USDT",
 }
 
+def symbol_filter(symbols: set):
 
-# from interruptingcow import timeout
-
-for ticker in tqdm(top_tickers):
-    ex_tickers, tickers_ex, _ = CreateConfigs({ticker}).manage_configs()
-    
-asyncio.run(write_filtered_symbols(ex_tickers))
+    for ticker in symbols:
+        logger.info(f'Preparing for {ticker}')
+        ex_tickers, tickers_ex, _ = CreateConfigs({ticker}).manage_configs()
+        asyncio.run(write_filtered_symbols(ex_tickers))
