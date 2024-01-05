@@ -1,0 +1,4 @@
+{
+  "binance": ["BTC/USDT", "ETH/BTC"],
+  "okx": ["BTC/USDT", "ETH/BTC"]
+}
