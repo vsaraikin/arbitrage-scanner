@@ -3,6 +3,8 @@ import json
 import time
 from typing import Any, Callable
 
+from src.const import PATH_TO_CONFIGS
+
 
 def write_data(data: dict, filename: str) -> None:
     """Write data to json"""
@@ -18,6 +20,10 @@ def read_data(filename: str) -> Any | None:
         return file
     except FileNotFoundError:
         return None
+
+
+def read_configs():
+    return read_data(PATH_TO_CONFIGS)
 
 
 def timeit(func: Callable):

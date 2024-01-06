@@ -1,28 +1,23 @@
 import asyncio
 import logging
-import time
+import signal
 
 import ccxt.pro
 
 from src.calculator import Engine
 
-logging.basicConfig(filename=f'messages_{time.time()}.log',
-                    filemode='a',
-                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Scanner:
-    def __init__(self):
+    def __init__(self, loop):
         self.symbols = []
         self.exchanges = []
         self.orderbooks = {}
         self.engine = Engine()
         self.is_running = True
+        self.loop = loop
+        self.subscriptions = 0
 
     async def symbol_loop(self, exchange, symbol):
         while self.is_running:
@@ -33,9 +28,13 @@ class Scanner:
                 print('===========================================================')
 
                 self.engine.calculate(self.orderbooks)
+                print(f"Currently there are: {self.subscriptions} subscriptions")
             except asyncio.CancelledError:
                 # Gracefully handle cancellation
-                print(f"Task cancelled for {symbol} on {exchange.id}")
+                logger.info(f"Task cancelled for {symbol} on {exchange.id}")
+                task = asyncio.current_task()
+                logger.info(task.cancel())
+                self.subscriptions -= 1
                 break
             except ccxt.RequestTimeout as e:
                 # recoverable error, do nothing and retry later
@@ -43,7 +42,7 @@ class Scanner:
             except ccxt.DDoSProtection as e:
                 # recoverable error, you sleep a bit and retry later
                 logger.critical(f"{type(e).__name__} {str(e)} on {exchange}")
-                await asyncio.sleep(0.000001)
+                await asyncio.sleep(0.001)
             except ccxt.ExchangeNotAvailable as e:
                 # recoverable error, do nothing and retry later
                 logger.critical(f"{type(e).__name__} {str(e)} on {exchange}")
@@ -53,28 +52,35 @@ class Scanner:
             except Exception as e:
                 # panic and halt the execution in case of any other error
                 logger.critical(f"{type(e).__name__} {str(e)} on {exchange}")
+                self.subscriptions -= 1
                 break
 
     async def exchange_init(self, exchange_id, symbols):
         exchange = getattr(ccxt.pro, exchange_id)()
+        self.exchanges.append(exchange)
+        self.subscriptions += len(symbols)
         loops = [self.symbol_loop(exchange, symbol) for symbol in symbols]
         await asyncio.gather(*loops)
         await exchange.close()
 
-    async def run(self, exchanges_symbols: dict[str, list[str]]):
+    async def stop(self):
+        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        for exchange in self.exchanges:
+            logger.info("Closed exchange %s", exchange)
+            await exchange.close()
+        # self.loop.close()
+        # self.loop.stop()
+
+    async def _run(self, exchanges_symbols: dict[str, list[str]]):
         loops = [self.exchange_init(exchange_id, symbols) for exchange_id, symbols in exchanges_symbols.items()]
         await asyncio.gather(*loops)
 
-    async def stop(self):
-        self.is_running = False
-        # Close each exchange instance
-        for exchange in self.exchanges:
-            await exchange.close()
-        # Optionally, you can wait for all tasks to complete
-        pending = asyncio.all_tasks()
-        for task in pending:
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+    async def run(self, exchanges_symbols: dict[str, list[str]]):
+        # TODO: RUN IN LOOP, add signals
+        # signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+        # for sig in signals:
+        #     self.loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(self.shutdown(s, self.loop)))
+        await self._run(exchanges_symbols)
