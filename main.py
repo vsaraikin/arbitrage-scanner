@@ -1,22 +1,24 @@
 import asyncio
 
 from src.scanner import Scanner
-from src.tools import read_data
+from src.utils import read_data, read_configs
+
+from src.logging_config import setup_logging
+
+setup_logging()
 
 
 async def main():
-    cfg = read_data("config/routes.json")
-    s = Scanner()
+    loop = asyncio.get_event_loop()
+    cfg = read_configs()
+    s = Scanner(loop)
     try:
         await s.run(cfg)
     except KeyboardInterrupt:
-        await s.stop()
+        print("Interrupt received, stopping...")
     finally:
+        await s.stop()
         print("Shutdown complete.")
 
-
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Program terminated by user")
+    asyncio.run(main())

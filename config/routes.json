@@ -1,4 +1,10 @@
 {
-  "binance": ["BTC/USDT", "ETH/BTC"],
-  "okx": ["BTC/USDT", "ETH/BTC"]
+
+    "binance": ["BTC/USDT", "ETH/USDT", "SOL/USDT"],
+
+    "kraken":["BTC/USDT", "ETH/USDT", "SOL/USDT"],
+
+    "okx": ["BTC/USDT", "ETH/USDT", "SOL/USDT"],
+
+    "huobi": ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
 }
