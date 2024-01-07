@@ -1,25 +1,26 @@
 import asyncio
 import logging
-import os
-import sys
-import time
 import ccxt
 import ccxt.pro as ccxt_ws
-import tqdm, tqdm.asyncio
+import tqdm.asyncio
 
-from src.utils import write_data
+from common.utils import write_data
+
 
 exchanges_symbols = {}
 
 logger = logging.getLogger(__name__)
-semaphore = asyncio.Semaphore(15)  # Semaphore with 15 tokens
+
+
+ALLOWED_SUBSCRIPTIONS_AT_ONCE = 20
+semaphore = asyncio.Semaphore(ALLOWED_SUBSCRIPTIONS_AT_ONCE)
 
 
 def save_markets(data):
-    write_data(data, "markets.json")  # todo: config/....
+    write_data(data, "bitmart_4.json")  # todo: config/....
 
 
-async def check_market_eligibility(market, exchange) -> str:
+async def check_market_eligibility(market, exchange) -> str | None:
     # Market should be spot and have enough liquidity there
     async with semaphore:  # Acquire a token from the semaphore
         symbol = market.get('symbol')
@@ -29,7 +30,6 @@ async def check_market_eligibility(market, exchange) -> str:
             return
 
         if market.get('type') == 'spot' and market.get('spot') and market.get('active'):
-            # Check liquidity
             ticker_data = await exchange.watch_ticker(symbol=symbol)
             if ticker_data.get('baseVolume') > 0:
                 return symbol
@@ -42,17 +42,17 @@ async def check_market_eligibility(market, exchange) -> str:
 async def get_info(exchange):
     try:
         present = exchange in ccxt.exchanges
-
         if present:
             print('Instantiating', exchange)
-
             exchange_ws = getattr(ccxt_ws, exchange)()
 
             markets = await exchange_ws.load_markets()
             tasks = []
-            for market in markets:
+            for market in list(markets.keys())[260:350]:
                 task = check_market_eligibility(markets[market], exchange_ws)
                 tasks.append(task)
+
+            # Exclude some symbols
             eligible_markets = [result for result in await tqdm.asyncio.tqdm.gather(*tasks) if result is not None]
             exchanges_symbols[exchange] = eligible_markets
             await exchange_ws.close()
@@ -64,7 +64,13 @@ async def get_info(exchange):
 
 
 async def main():
-    loops = [get_info(exchange) for exchange in ["kucoin"]]
+    """
+    Fetches exchange symbols and checks liquidity, instrument type for particular symbol.
+    Creates markets.json file `exchange: symbols[str]` with suitable markets.
+    :return:
+    """
+    exchanges = ["bitmart"]
+    loops = [get_info(exchange) for exchange in exchanges]
     await tqdm.asyncio.tqdm.gather(*loops)
 
 

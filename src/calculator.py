@@ -1,6 +1,13 @@
+class ArbitrageStorage:
+    ...
+
+
 class Engine:
-    @staticmethod
-    def calculate(orderbooks: dict):
+
+    def __init__(self):
+        self.significance_level = 0.001
+
+    def calculate(self, orderbooks: dict):
         prices_by_symbol = {}
 
         for exchange_id, orderbooks_by_symbol in orderbooks.items():
@@ -26,4 +33,8 @@ class Engine:
                         prices_by_symbol[symbol]['highest_bid_exchange'] = exchange_id
 
         for symbol, prices in prices_by_symbol.items():
-            print(f"{symbol} - Lowest Ask: {prices['lowest_ask']} (Exchange: {prices['lowest_ask_exchange']}), Highest Bid: {prices['highest_bid']} (Exchange: {prices['highest_bid_exchange']})")
+            value = round(prices['highest_bid'] / prices['lowest_ask'], 3)
+            print(value - 1, self.significance_level)
+            if value - 1 > self.significance_level:
+                print(f"{symbol} - Spread {value * 100} | Lowest Ask: {prices['lowest_ask']} (Exchange: {prices['lowest_ask_exchange']}), Highest Bid: {prices['highest_bid']} (Exchange: {prices['highest_bid_exchange']})")
+
