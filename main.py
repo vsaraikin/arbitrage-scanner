@@ -11,11 +11,10 @@ setup_logging()
 
 async def main():
     loop = asyncio.get_event_loop()
-    cfg = mutual_markets(read_configs(), min_limit=3, max_limit=2)
-    cfg = {
-        "okx": ["KCAL/USDT"],
-        "huobi":  ["KCAL/USDT"]
-    }
+    cfg = mutual_markets(read_configs(),
+                         max_limit=2,
+                         min_limit=3,
+                         )
     s = Scanner(loop)
     try:
         await s.run(cfg)

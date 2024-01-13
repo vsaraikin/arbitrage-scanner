@@ -5,7 +5,7 @@ class ArbitrageStorage:
 class Engine:
 
     def __init__(self):
-        self.significance_level = 0.001
+        self.significance_level = 0.01
 
     def calculate(self, orderbooks: dict):
         prices_by_symbol = {}
@@ -33,8 +33,10 @@ class Engine:
                         prices_by_symbol[symbol]['highest_bid_exchange'] = exchange_id
 
         for symbol, prices in prices_by_symbol.items():
-            value = round(prices['highest_bid'] / prices['lowest_ask'], 3)
-            print(value - 1, self.significance_level)
-            if value - 1 > self.significance_level:
-                print(f"{symbol} - Spread {value * 100} | Lowest Ask: {prices['lowest_ask']} (Exchange: {prices['lowest_ask_exchange']}), Highest Bid: {prices['highest_bid']} (Exchange: {prices['highest_bid_exchange']})")
+            value = round((prices['highest_bid'] / prices['lowest_ask']) - 1, 3)
+            if value > self.significance_level:
+                print(f"{symbol} - Spread {value * 100}% | "
+                      f"Lowest Ask: {prices['lowest_ask']} (Exchange: {prices['lowest_ask_exchange']}), "
+                      f"Highest Bid: {prices['highest_bid']} (Exchange: {prices['highest_bid_exchange']})")
 
+        print(f"{sum([len(orderbooks[key].values()) for key in orderbooks.keys()])} subscriptions received")

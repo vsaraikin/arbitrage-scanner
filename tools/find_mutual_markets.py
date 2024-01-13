@@ -17,7 +17,6 @@ def mutual_markets(markets: dict, min_limit: int = 0, max_limit: int = 0):
             if not max_limit < len(exchanges) <= min_limit:
                 del symbols[symbol]
 
-
     markets = {}
     for symbol, exchanges in symbols.items():
         for ex in exchanges:
