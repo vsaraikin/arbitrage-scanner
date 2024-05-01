@@ -4,7 +4,7 @@ import signal
 
 import ccxt.pro
 
-from src.calculator import Engine
+from calculator import Engine
 
 logger = logging.getLogger(__name__)
 
