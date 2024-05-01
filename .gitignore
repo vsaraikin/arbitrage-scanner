@@ -2,6 +2,4 @@
 __pycache__
 *.log
 .vscode
-ticker_engineering/all_tickers_exchanges.json
-ticker_engineering/filtered_tickers_exchanges.json
-*.log
+venv

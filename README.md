@@ -1,19 +1,32 @@
-# Cryptocurrency arbitrage scanner
+# Arbitrage scanner v2.0 `[In progress]`
 
-Recommended Python version: 3.9
+>v1.0 is deprecated and is moved to the branch `v1.0`
 
-Install requirements:
+This is a simple arbitrage scanner that checks for arbitrage opportunities between two exchanges using CCXT library.
 
-`pip install -r requirements.txt`
+## Installation
 
-Run scanner:
+1. Clone the repository:
+    ```bash
+    git clone git@github.com:vsaraikin/arbitrage-scanner.git
+    ```
+2. Setup venv and install the requirements
+    ```bash
+    python3.12 -m venv venv
+   ```
 
-`python main.py`
+    ```bash
+    pip install -r requirements.txt
+    ```
 
+3. Run the script
+    ```bash
+    python main.py
+    ```
 
-## Architecture
+4. Enjoy
 
+## Configuration
 
-## How does scanner works?
+You can configure the exchanges and the pairs in the `config.json` file.
 
-will be added later
