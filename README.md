@@ -1,4 +1,8 @@
-# Arbitrage scanner v2.0 `[In progress]`
+# Arbitrage scanner
+
+>WAS ARCHIVED.
+>AFTER THE RESEARCH DONE, MOSTLY FUTURE DELISTING PAIRS WERE FOUND
+>OR DUE TO COMISSIONS OF THE EXCHANGES, ARBITRAGE WAS NOT PROFITABLE
 
 >v1.0 is deprecated and is moved to the branch `v1.0`
 
